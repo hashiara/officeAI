@@ -1,0 +1,16 @@
+[Unit]
+Description=n8n Docker Compose Service
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/home/ec2-user/n8n/.devcontainer
+ExecStart=/usr/local/bin/docker-compose up -d
+ExecStop=/usr/local/bin/docker-compose down
+User=ec2-user
+Group=ec2-user
+
+[Install]
+WantedBy=multi-user.target

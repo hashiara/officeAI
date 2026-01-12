@@ -1,0 +1,36 @@
+name: n8n
+
+volumes:
+  postgres-data:
+  n8n-data:
+
+networks:
+  default:
+  officeai_network:
+    external: true
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    environment:
+      - .env
+
+  n8n:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    volumes:
+      - ..:/workspaces:cached
+      - ./n8n-data:/home/node/.n8n
+    ports:
+      - "${PORT}:5678"
+    command: n8n start
+    env_file:
+      - .env
+    networks:
+      - default
+      - officeai_network

@@ -1,0 +1,48 @@
+# cloneしたリポジトリ（独立したgitリポジトリとして管理）
+# ただし.devcontainerディレクトリは管理対象
+n8n/*
+!n8n/.devcontainer/
+n8n/.devcontainer/*
+n8n/.devcontainer/n8n-data/
+!n8n/.devcontainer/docker-compose.yml
+!n8n/.devcontainer/Dockerfile
+!n8n/.devcontainer/devcontainer.json
+
+# 環境変数ファイル
+.env
+*.env
+!*.env.example
+!*.env.local
+
+# ログファイル
+*.log
+logs/
+
+# OS生成ファイル
+.DS_Store
+Thumbs.db
+
+# エディタ設定
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Docker volumes
+volumes/
+**/volumes/
+
+# 一時ファイル
+tmp/
+temp/
+*.tmp

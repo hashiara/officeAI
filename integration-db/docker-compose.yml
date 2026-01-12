@@ -1,0 +1,80 @@
+name: integration-db
+
+volumes:
+  integration-mysql-data:
+  integration-postgres-data:
+
+services:
+  # n8nとdify共有データ専用MySQL
+  integration-mysql:
+    image: mysql:8.0
+    restart: always
+    ports:
+      - "${MYSQL_HOST_PORT}:3306"
+    volumes:
+      - integration-mysql-data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    command: --default-authentication-plugin=mysql_native_password
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - officeai_network
+
+  # MySQL管理用のphpMyAdmin
+  phpmyadmin:
+    image: phpmyadmin:latest
+    restart: always
+    ports:
+      - "${PHPMYADMIN_HOST_PORT}:80"
+    environment:
+      PMA_HOST: integration-mysql
+      PMA_PORT: 3306
+      PMA_USER: ${MYSQL_USER}
+      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    depends_on:
+      integration-mysql:
+        condition: service_healthy
+    networks:
+      - officeai_network
+
+  # 共有用PostgreSQL
+  integration-postgres:
+    image: postgres:16-alpine
+    restart: always
+    ports:
+      - "${POSTGRES_HOST_PORT}:5432"
+    volumes:
+      - integration-postgres-data:/var/lib/postgresql/data
+      - ./init-pg.sql:/docker-entrypoint-initdb.d/init-pg.sql
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - officeai_network
+
+  # PostgreSQL管理用pgAdmin
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: always
+    ports:
+      - "${PGADMIN_HOST_PORT}:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
+    depends_on:
+      - integration-postgres
+    networks:
+      - officeai_network
+
+networks:
+  officeai_network:
+    external: true
